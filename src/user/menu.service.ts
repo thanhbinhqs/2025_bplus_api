@@ -18,7 +18,7 @@ export class MenuService {
     const menu: MenuItem[] = [];
 
     menu.push({
-      label: 'Home',
+      title: 'Home',
       slug: 'home',
       path: '/',
       type: MenuItemType.TOP_MENU,
@@ -26,6 +26,46 @@ export class MenuService {
 
     //check if user is not logged in
     if (!user) return menu;
+
+
+    //USER ACTION MENUS
+    menu.push({
+      title: 'Profile',
+      slug: 'user-profile',
+      path: '/dashboard/users/profile',
+      type: MenuItemType.DIALOG_PAGE,
+    });
+    menu.push({
+      title: 'Set Password',
+      slug: 'user-set-password',
+      path: '/dashboard/users/password',
+      type: MenuItemType.DIALOG_PAGE,
+    });
+
+    menu.push({
+      title: 'Set Active',
+      slug: 'user-active',
+      path: '/dashboard/users/active',
+      type: MenuItemType.DIALOG_PAGE,
+    });
+
+    menu.push({
+      title: 'Set Active',
+      slug: 'user-active',
+      path: '/dashboard/users/active',
+      type: MenuItemType.DIALOG_PAGE,
+    });
+
+    menu.push({
+      title: 'Delete',
+      slug: 'user-delete',
+      path: '/dashboard/users/delete',
+      type: MenuItemType.DIALOG_PAGE,
+    });
+
+
+
+    const dashboardItems: MenuItem[] = [];
 
     if (
       Utils.checkPermissions(
@@ -36,18 +76,27 @@ export class MenuService {
         })),
       )
     ) {
-      menu.push({
-        label: 'Users',
+      dashboardItems.push({
+        title: 'Users',
         slug: 'users',
-        path: '/users',
+        path: '/dashboard/users',
         type: MenuItemType.TOP_MENU,
+      });
+    }
+
+    if (dashboardItems.length > 0) {
+      menu.push({
+        title: 'Dashboard',
+        slug: 'dashboard',
+        type: MenuItemType.TOP_MENU,
+        path: '/dashboard',
+        children: dashboardItems,
       });
     }
 
     return menu;
   }
 
-  
   findMenu() {
     const user = this.request['user'] as User;
     const menu = this.getMenu(user);
