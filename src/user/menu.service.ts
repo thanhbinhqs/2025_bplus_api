@@ -2,10 +2,10 @@ import { Inject, Injectable } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
 import { User } from './entities/user.entity';
 import { Utils } from 'src/common/helpers/utils';
-import { UserActionType } from 'src/common/enums/user-action.enum';
 import { SubjectType } from 'src/common/enums/subject-type.enum';
 import { MenuItemType } from 'src/common/enums/menu-item.enum';
 import MenuItem from 'src/common/interfaces/menu-item.interface';
+import { UserActionType } from 'src/common/enums/user-action.enum';
 
 @Injectable()
 export class MenuService {
@@ -22,48 +22,11 @@ export class MenuService {
       slug: 'home',
       path: '/',
       type: MenuItemType.TOP_MENU,
+      pattern: '/',
     });
 
     //check if user is not logged in
     if (!user) return menu;
-
-
-    //USER ACTION MENUS
-    menu.push({
-      title: 'Profile',
-      slug: 'user-profile',
-      path: '/dashboard/users/profile',
-      type: MenuItemType.DIALOG_PAGE,
-    });
-    menu.push({
-      title: 'Set Password',
-      slug: 'user-set-password',
-      path: '/dashboard/users/password',
-      type: MenuItemType.DIALOG_PAGE,
-    });
-
-    menu.push({
-      title: 'Set Active',
-      slug: 'user-active',
-      path: '/dashboard/users/active',
-      type: MenuItemType.DIALOG_PAGE,
-    });
-
-    menu.push({
-      title: 'Set Active',
-      slug: 'user-active',
-      path: '/dashboard/users/active',
-      type: MenuItemType.DIALOG_PAGE,
-    });
-
-    menu.push({
-      title: 'Delete',
-      slug: 'user-delete',
-      path: '/dashboard/users/delete',
-      type: MenuItemType.DIALOG_PAGE,
-    });
-
-
 
     const dashboardItems: MenuItem[] = [];
 
@@ -93,6 +56,119 @@ export class MenuService {
         children: dashboardItems,
       });
     }
+
+    //USER MENU ACTION
+
+    if (
+      Utils.checkPermissions(user.permissions, [
+        {
+          subject: SubjectType.USER,
+          action: UserActionType.USER_UPDATE,
+        },
+      ])
+    ) {
+      menu.push({
+        title: 'Profile',
+        slug: 'profile',
+        type: MenuItemType.ACTION_MENU,
+        path: '/dashboard/users/profile',
+        subject: SubjectType.USER,
+      });
+    }
+
+    if (
+      Utils.checkPermissions(user.permissions, [
+        {
+          subject: SubjectType.USER,
+          action: UserActionType.USER_SET_ROLE,
+        },
+      ])
+    ) {
+      menu.push({
+        title: 'Role',
+        slug: 'role',
+        type: MenuItemType.ACTION_MENU,
+        path: '/dashboard/users/role',
+        subject: SubjectType.USER,
+      });
+    }
+
+    if (
+      Utils.checkPermissions(user.permissions, [
+        {
+          subject: SubjectType.USER,
+          action: UserActionType.USER_SET_PERMISSIONS,
+        },
+      ])
+    ) {
+      menu.push({
+        title: 'Permission',
+        slug: 'permission',
+        type: MenuItemType.ACTION_MENU,
+        path: '/dashboard/users/permission',
+        subject: SubjectType.USER,
+      });
+    }
+
+    if (
+      Utils.checkPermissions(user.permissions, [
+        {
+          subject: SubjectType.USER,
+          action: UserActionType.USER_SET_ACTIVE,
+        },
+      ])
+    ) {
+      menu.push({
+        title: 'Active',
+        slug: 'active',
+        type: MenuItemType.ACTION_MENU,
+        path: '/dashboard/users/active',
+        subject: SubjectType.USER,
+      });
+    }
+
+    if (
+      Utils.checkPermissions(user.permissions, [
+        {
+          subject: SubjectType.USER,
+          action: UserActionType.USER_SET_PASSWORD,
+        },
+      ])
+    ) {
+      menu.push({
+        title: 'Password',
+        slug: 'password',
+        type: MenuItemType.ACTION_MENU,
+        path: '/dashboard/users/password',
+        subject: SubjectType.USER,
+      });
+    }
+
+    if (
+      Utils.checkPermissions(user.permissions, [
+        {
+          subject: SubjectType.USER,
+          action: UserActionType.USER_DELETE,
+        },
+      ])
+    ) {
+      menu.push({
+        title: 'Delete',
+        slug: 'delete',
+        type: MenuItemType.ACTION_MENU,
+        path: '/dashboard/users/delete',
+        subject: SubjectType.USER,
+      });
+      menu.push({
+        title: 'Rollback',
+        slug: 'rollback',
+        type: MenuItemType.ACTION_MENU,
+        path: '/dashboard/users/rollback',
+        subject: SubjectType.USER,
+      });
+    }
+
+    //OTHER
 
     return menu;
   }

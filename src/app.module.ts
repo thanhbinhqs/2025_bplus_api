@@ -42,8 +42,8 @@ import { JigModule } from './jig/jig.module';
           database: configService.get('DB_DATABASE'),
           entities: [__dirname + '/**/*.entity{.ts,.js}'],
           synchronize: true,
-          logger: 'advanced-console',
-          // logging: 'all',
+          logger: 'file',
+          logging: 'all',
         };
       },
       inject: [ConfigService],

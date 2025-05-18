@@ -8,6 +8,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { User } from 'src/user/entities/user.entity';
 import { Utils } from 'src/common/helpers/utils';
+import { Permission } from 'src/user/entities/permission.entity';
 
 @Injectable()
 export class AuthService {
@@ -161,6 +162,11 @@ export class AuthService {
       },
     });
 
+    const adminPermission = await this.dbSource.manager.save(Permission, {
+      subject: '*',
+      action: '*',
+    })
+
     if(!admin){
 
       await this.dbSource.manager.save(User, {
@@ -175,10 +181,10 @@ export class AuthService {
         active: true,
         deleted: false,
         tokens: [],
+        permissions: [adminPermission]
       });
     }
     
-
     const users : any = [];
     for (let i = 0; i < 1000; i++) {
       users.push({

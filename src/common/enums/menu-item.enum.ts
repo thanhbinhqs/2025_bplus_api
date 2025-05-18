@@ -2,4 +2,6 @@ export enum MenuItemType {
   NONE = 'NONE',
   TOP_MENU = 'TOP_MENU',
   DIALOG_PAGE = 'DIALOG_PAGE',
+  URL_ACCESS = 'URL_ACCESS',  
+  ACTION_MENU = 'ACTION_MENU',
 }

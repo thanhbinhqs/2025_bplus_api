@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { FindAllUserDto } from './dto/find-all-user.dto';
 import { REQUEST } from '@nestjs/core';
-import { DataSource, In } from 'typeorm';
+import { Brackets, DataSource, In } from 'typeorm';
 import { User } from './entities/user.entity';
 import { Utils } from 'src/common/helpers/utils';
 import { UserActionType } from 'src/common/enums/user-action.enum';
@@ -43,9 +43,8 @@ export class UserService {
     private readonly request: Request,
     private readonly dbSource: DataSource,
     private readonly socketGateway: SocketGateway,
-    private readonly menuService: MenuService
+    private readonly menuService: MenuService,
   ) {}
-
 
   async me() {
     if (!this.request['user']) {
@@ -74,19 +73,24 @@ export class UserService {
 
     const userRepository = this.dbSource.getRepository(User);
     const queryBuilder = userRepository.createQueryBuilder('user');
-    queryBuilder.where('user.deleted = false');
+    if (
+      !Utils.checkPermissions(loggedUser.permissions, [
+        { subject: SubjectType.USER, action: UserActionType.USER_DELETE },
+      ])
+    ) {
+      queryBuilder.where('user.deleted = false');
+    } else {
+      queryBuilder.where('user.deleted IS NOT NULL');
+    }
+
     if (search) {
-      queryBuilder.andWhere('user.username LIKE :search', {
-        search: `%${search}%`,
-      });
-      //add search by email
-      queryBuilder.orWhere('user.email LIKE :search', {
-        search: `%${search}%`,
-      });
-      //add search by fullname
-      queryBuilder.orWhere('user.fullname LIKE :search', {
-        search: `%${search}%`,
-      });
+      queryBuilder.andWhere(
+        new Brackets((qb) => {
+          qb.where('user.username LIKE :search', { search: '%232%' })
+            .orWhere('user.email LIKE :search', { search: '%232%' })
+            .orWhere('user.fullname LIKE :search', { search: '%232%' });
+        }),
+      );
     }
     queryBuilder.orderBy('user.username', order);
     queryBuilder.skip((page - 1) * limit);
@@ -94,7 +98,7 @@ export class UserService {
     const users = await queryBuilder.getManyAndCount();
     return {
       data: users[0].map((u) => new UserResponseDto(u)),
-      total: !search ? users[1] : users[0].length,
+      total: users[1],
       page: page,
       limit: limit,
     };
@@ -120,7 +124,16 @@ export class UserService {
     const userRepository = this.dbSource.getRepository(User);
     //querybuilder
     const queryBuilder = userRepository.createQueryBuilder('user');
-    queryBuilder.where('user.deleted = false');
+    if (
+      !Utils.checkPermissions(loggedUser.permissions, [
+        { subject: SubjectType.USER, action: UserActionType.USER_DELETE },
+      ])
+    ) {
+      queryBuilder.where('user.deleted = false');
+    } else {
+      queryBuilder.where('user.deleted IS NOT NULL');
+    }
+
     if (Utils.isValidUUID(id)) {
       queryBuilder.andWhere('user.id = :id', { id });
     } else {
@@ -495,9 +508,4 @@ export class UserService {
       message: 'Set user departments successfully',
     };
   }
-
-  
-  
-
-
 }

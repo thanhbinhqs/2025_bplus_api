@@ -35,7 +35,6 @@ export class UserController {
   me() {
     return this.userService.me();
   }
-
   
   @Get()
   @ApiConsumes('application/json')
