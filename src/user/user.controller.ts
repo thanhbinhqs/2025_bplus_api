@@ -24,6 +24,7 @@ import { SetUserPermissionDto } from './dto/set-user-permission.dto';
 import { Response } from 'express';
 import { SetUserDepartmentDto } from './dto/set-user-department.dto';
 import { AllowAnonymous } from 'src/common/decorators/allow-anonymous';
+import { UpdateUserProfileDto } from './dto/update-profile.dto';
 
 @Controller('user')
 @UseGuards(AuthGuard)
@@ -35,7 +36,7 @@ export class UserController {
   me() {
     return this.userService.me();
   }
-  
+
   @Get()
   @ApiConsumes('application/json')
   findAll(@Query() query: FindAllUserDto) {
@@ -50,6 +51,11 @@ export class UserController {
   @Delete(':id')
   remove(@Param() param: DeleteUserDto) {
     return this.userService.delete(param);
+  }
+
+  @Patch('profile')
+  updateProfile(@Body() body: UpdateUserProfileDto) {
+    return this.userService.updateProfile(body);
   }
 
   @Patch('change-password')

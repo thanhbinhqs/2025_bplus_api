@@ -34,6 +34,7 @@ import { SetUserDepartmentDto } from './dto/set-user-department.dto';
 import { Department } from './entities/department.entity';
 import { SocketGateway } from 'src/socket/socket.gateway';
 import { MenuService } from './menu.service';
+import { UpdateUserProfileDto } from './dto/update-profile.dto';
 
 @Injectable()
 export class UserService {
@@ -51,6 +52,54 @@ export class UserService {
       throw new UnauthorizedException('Not authenticated');
     }
     return new UserResponseDto(this.request['user']);
+  }
+
+  async updateProfile(body: UpdateUserProfileDto) {
+    const { id, fullname, email, phone, address, avatar, gen } = body;
+    const loggedUser: User = this.request['user'];
+    const access =
+      Utils.checkPermissions(
+        loggedUser.permissions,
+        Object.keys(UserActionType).map((key) => {
+          return {
+            subject: SubjectType.USER,
+            action: UserActionType[key],
+          };
+        }),
+      ) || loggedUser.id == id;
+    if (!access)
+      throw new ForbiddenException(
+        'You do not have permission to access this resource.',
+      );
+
+    let user = await this.dbSource.manager.findOne(User, {
+      where: {
+        deleted: false,
+        id: id,
+      },
+    });
+
+    if (!user) throw new BadRequestException('User not found');
+
+    const history = new History();
+    history.subject = SubjectType.USER;
+    history.action = 'UPDATE_PROFILE';
+    history.userId = loggedUser.id;
+    history.before = user;
+    history.subjectId = user.id;
+
+    user.fullname = fullname;
+    user.email = email;
+    user.phone = phone;
+    user.address = address;
+    user.gen = gen;
+    user.avatar = avatar;
+
+    user = await this.dbSource.manager.save(user);
+
+    history.after = user;
+    await this.dbSource.manager.save(history);
+    return new UserResponseDto(user);
   }
 
   async findAll(query: FindAllUserDto) {
@@ -86,9 +135,9 @@ export class UserService {
     if (search) {
       queryBuilder.andWhere(
         new Brackets((qb) => {
-          qb.where('user.username LIKE :search', { search: '%232%' })
-            .orWhere('user.email LIKE :search', { search: '%232%' })
-            .orWhere('user.fullname LIKE :search', { search: '%232%' });
+          qb.where('user.username LIKE :search', { search: `%${search}%` })
+            .orWhere('user.email LIKE :search', { search: `%${search}%` })
+            .orWhere('user.fullname LIKE :search', { search: `%${search}%` });
         }),
       );
     }
